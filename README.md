@@ -2,7 +2,7 @@
 
 Учебная браузерная игра — лабиринт с NPC-стражами, каждый задаёт загадку. Клад в конце запечатан пока все загадки не решены.
 
-**[▶ Играть онлайн](https://alevo4kina.github.io/maze-game/)** · 2D top-down и 3D Grimrock/FPS в одном проекте.
+**[▶ Играть онлайн](https://alexandronn2010.github.io/maze-game/)** · 2D top-down и 3D Grimrock/FPS в одном проекте.
 
 ## Управление
 
