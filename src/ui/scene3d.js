@@ -14,8 +14,11 @@ const COLORS = {
 };
 
 export function buildScene(canvas, level) {
-  const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  // Mobile-perf режим: настолько же атмосферно, но без дорогих пост-эффектов
+  const lowPerf = !!window.__mazeTouch;
+  const renderer = new THREE.WebGLRenderer({ canvas, antialias: !lowPerf });
+  // На мобильном DPR 3+ означает 9× пикселей. Ограничиваем до 1 для FPS.
+  renderer.setPixelRatio(lowPerf ? 1 : Math.min(window.devicePixelRatio, 2));
   renderer.setSize(canvas.clientWidth || canvas.width, canvas.clientHeight || canvas.height, false);
   renderer.setClearColor(0x000000);
 
@@ -111,8 +114,8 @@ export function buildScene(canvas, level) {
     }
   }
 
-  // Искры в воздухе — 250 точек, дрейфуют вверх, wrap к полу
-  const SPARK_COUNT = 250;
+  // Искры в воздухе — 250 точек (60 на mobile), дрейфуют вверх, wrap к полу
+  const SPARK_COUNT = lowPerf ? 60 : 250;
   const sparkGeo = new THREE.BufferGeometry();
   const sparkPos = new Float32Array(SPARK_COUNT * 3);
   const sparkVel = new Float32Array(SPARK_COUNT);
@@ -149,8 +152,8 @@ export function buildScene(canvas, level) {
   treasure.add(tGlow);
   scene.add(treasure);
 
-  // Орбитальные искры вокруг клада — 60 частиц по кругу
-  const ORBIT_COUNT = 60;
+  // Орбитальные искры вокруг клада — 60 частиц (20 на mobile)
+  const ORBIT_COUNT = lowPerf ? 20 : 60;
   const orbitGeo = new THREE.BufferGeometry();
   const orbitPos = new Float32Array(ORBIT_COUNT * 3);
   const orbitPhase = new Float32Array(ORBIT_COUNT);
@@ -199,25 +202,27 @@ export function buildScene(canvas, level) {
     scene.add(group);
   }
 
-  // Пост-обработка: bloom + виньетка
-  const composer = new EffectComposer(renderer);
-  composer.setSize(canvas.width, canvas.height);
-  composer.addPass(new RenderPass(scene, camera));
-  const bloomPass = new UnrealBloomPass(
-    new THREE.Vector2(canvas.width, canvas.height),
-    0.85, // strength
-    0.7,  // radius
-    0.25  // threshold
-  );
-  composer.addPass(bloomPass);
-  const vignettePass = new ShaderPass(VignetteShader);
-  vignettePass.uniforms.offset.value = 1.1;
-  vignettePass.uniforms.darkness.value = 0.9;
-  composer.addPass(vignettePass);
+  // Пост-обработка: bloom + виньетка (только на десктопе — на мобильном дорого)
+  let composer = null;
+  let bloomPass = null;
+  if (!lowPerf) {
+    composer = new EffectComposer(renderer);
+    composer.setSize(canvas.width, canvas.height);
+    composer.addPass(new RenderPass(scene, camera));
+    bloomPass = new UnrealBloomPass(
+      new THREE.Vector2(canvas.width, canvas.height),
+      0.85, 0.7, 0.25,
+    );
+    composer.addPass(bloomPass);
+    const vignettePass = new ShaderPass(VignetteShader);
+    vignettePass.uniforms.offset.value = 1.1;
+    vignettePass.uniforms.darkness.value = 0.9;
+    composer.addPass(vignettePass);
+  }
 
   // Состояние финальной вспышки
-  let winTime = -1; // время старта победной анимации в t-единицах
-  const baseBloomStrength = bloomPass.strength;
+  let winTime = -1;
+  const baseBloomStrength = bloomPass ? bloomPass.strength : 0;
 
   const api = {
     renderer,
@@ -235,7 +240,7 @@ export function buildScene(canvas, level) {
 
     resize(width, height) {
       renderer.setSize(width, height, false);
-      composer.setSize(width, height);
+      composer?.setSize(width, height);
       camera.aspect = width / height;
       camera.updateProjectionMatrix();
     },
@@ -297,7 +302,7 @@ export function buildScene(canvas, level) {
       }
       orbitGeo.attributes.position.needsUpdate = true;
 
-      // Финальная вспышка: столб света + резкий bloom
+      // Финальная вспышка: столб света + (десктоп) резкий bloom
       if (winTime >= 0) {
         const dt = t - winTime;
         const beamAlpha = Math.min(1, dt * 1.5) * Math.max(0, 1 - (dt - 2) * 0.4);
@@ -305,9 +310,11 @@ export function buildScene(canvas, level) {
         beam.scale.y = 1 + Math.min(1, dt * 0.8);
         beam.position.y = 0.8 + Math.min(1, dt * 0.8) * 0.5;
         beam.rotation.y = t * 2;
-        const bloomBurst = Math.exp(-Math.pow(dt - 0.5, 2) * 4) * 1.5;
-        bloomPass.strength = baseBloomStrength + bloomBurst;
-      } else {
+        if (bloomPass) {
+          const bloomBurst = Math.exp(-Math.pow(dt - 0.5, 2) * 4) * 1.5;
+          bloomPass.strength = baseBloomStrength + bloomBurst;
+        }
+      } else if (bloomPass) {
         bloomPass.strength = baseBloomStrength;
       }
 
@@ -318,7 +325,8 @@ export function buildScene(canvas, level) {
         group.rotation.y = Math.atan2(dx, dz);
       }
 
-      composer.render();
+      if (composer) composer.render();
+      else renderer.render(scene, camera);
     },
   };
 

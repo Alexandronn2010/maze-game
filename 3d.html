@@ -366,10 +366,12 @@
     </style>
     <script>
       // Раннее touch-детект: добавляем класс до отрисовки
+      // и флаг __mazeTouch — его читает scene3d.js (отключает bloom/vignette, режет DPR и частицы)
       (function () {
         const isTouch = 'ontouchstart' in window
           || (navigator.maxTouchPoints || 0) > 0
           || (navigator.msMaxTouchPoints || 0) > 0;
+        window.__mazeTouch = isTouch;
         if (isTouch) {
           document.documentElement.classList.add('touch');
           document.addEventListener('DOMContentLoaded', () => {
