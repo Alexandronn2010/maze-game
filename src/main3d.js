@@ -12,6 +12,8 @@ import {
 import { isWalkable } from './entities/maze.js';
 import { findNPCAt } from './entities/npc.js';
 import { buildScene, tween, shortestAngle, drawMinimap } from './ui/scene3d.js';
+import { initSettings } from './game/settings.js';
+import { openMenu, closeMenu, isMenuOpen, bindEscape } from './ui/menu.js';
 
 const sceneCanvas = document.getElementById('scene');
 const minimapCanvas = document.getElementById('minimap');
@@ -27,6 +29,12 @@ const fullscreenBtn = document.getElementById('fullscreen-btn');
 
 async function main() {
   window.__mazeStarted = true;
+  initSettings();
+  // Для inline-скрипта свайпа в 3d.html: читает текущую чувствительность
+  const settingsMod = await import('./game/settings.js');
+  window.mazeSettings = {
+    getSensitivity: settingsMod.getSensitivity,
+  };
   statusEl.textContent = 'Загрузка 3D-сцены...';
 
   const [level, riddles] = await Promise.all([
@@ -337,6 +345,41 @@ async function main() {
   });
 
   muteBtn.textContent = isEnabled() ? '🔊 Звук' : '🔇 Тихо';
+
+  // Меню-пауза
+  let stateBeforePause = STATE.EXPLORING;
+  const pauseGame = () => {
+    if (state.current === STATE.PAUSED || state.current === STATE.WIN) return;
+    stateBeforePause = state.current;
+    state.current = STATE.PAUSED;
+    pressed.clear();
+    if (document.pointerLockElement === sceneCanvas) {
+      try { document.exitPointerLock?.(); } catch (_) {}
+    }
+    openMenu({
+      onContinue: () => {
+        state.current = stateBeforePause;
+        closeMenu();
+        updateHUD();
+      },
+      onNewGame: () => {
+        closeMenu();
+        location.reload();
+      },
+    });
+  };
+  const toggleMenu = () => {
+    if (state.current === STATE.WIN) return;
+    if (isMenuOpen()) {
+      state.current = stateBeforePause;
+      closeMenu();
+      updateHUD();
+    } else {
+      pauseGame();
+    }
+  };
+  bindEscape(toggleMenu);
+  document.getElementById('menu-btn')?.addEventListener('click', toggleMenu);
 
   const t0 = performance.now();
   let stepSoundAcc = 0;

@@ -362,6 +362,206 @@
       #win-overlay.open #win-box {
         animation: pop 0.18s ease-out;
       }
+
+      /* === Игровое меню === */
+      #menu-btn {
+        background: #2a2a4a;
+        color: var(--text);
+        border: 1px solid var(--border);
+        padding: 8px 12px;
+        border-radius: 6px;
+        font-family: inherit;
+        font-size: 13px;
+        cursor: pointer;
+        margin-top: 6px;
+        display: block;
+        width: 100%;
+        transition: background 0.15s, border-color 0.15s;
+      }
+      #menu-btn:hover { background: #34345a; border-color: var(--accent); }
+      #menu-btn:active { background: var(--accent); color: #14142a; }
+      /* На мобилке — плавающая круглая кнопка в правом верхнем углу поверх canvas */
+      html.touch #menu-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: fixed;
+        top: 10px;
+        right: 10px;
+        width: 46px;
+        height: 46px;
+        padding: 0;
+        margin: 0;
+        border-radius: 50%;
+        font-size: 20px;
+        background: rgba(20, 20, 35, 0.75);
+        border: 1px solid var(--border);
+        z-index: 150;
+        touch-action: manipulation;
+      }
+      html.touch #menu-btn::before { content: '☰'; }
+      html.touch #menu-btn { font-size: 0; }
+      html.touch #menu-btn::before { font-size: 22px; }
+
+      #menu-overlay {
+        position: fixed; inset: 0;
+        background: rgba(10, 10, 20, 0.78);
+        backdrop-filter: blur(6px);
+        -webkit-backdrop-filter: blur(6px);
+        display: none;
+        align-items: center; justify-content: center;
+        z-index: 200;
+        padding: 20px;
+        box-sizing: border-box;
+      }
+      #menu-overlay.open { display: flex; }
+      .menu-box {
+        max-width: 460px;
+        width: 100%;
+        background: var(--panel);
+        border: 2px solid var(--border);
+        border-radius: 14px;
+        padding: 28px 24px;
+        box-shadow: 0 12px 50px rgba(0, 0, 0, 0.7);
+        animation: pop 0.18s ease-out;
+      }
+      .menu-title {
+        margin: 0 0 20px;
+        font-size: 22px;
+        color: var(--accent);
+        text-align: center;
+        letter-spacing: 0.5px;
+      }
+      .menu-subtitle {
+        margin: 0 0 12px;
+        font-size: 14px;
+        color: var(--muted);
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
+        font-weight: 600;
+      }
+      .menu-text {
+        margin: 0 0 18px;
+        font-size: 14px;
+        line-height: 1.5;
+        color: var(--text);
+        text-align: center;
+      }
+      .menu-hint {
+        margin: 18px 0 0;
+        font-size: 12px;
+        color: var(--muted);
+        text-align: center;
+      }
+      .menu-btn {
+        display: block;
+        width: 100%;
+        background: #2a2a4a;
+        color: var(--text);
+        border: 1px solid var(--border);
+        padding: 14px 16px;
+        border-radius: 10px;
+        font-size: 16px;
+        font-weight: 500;
+        font-family: inherit;
+        cursor: pointer;
+        margin-bottom: 10px;
+        transition: background 0.15s, border-color 0.15s, transform 0.05s;
+        touch-action: manipulation;
+      }
+      .menu-btn:hover { background: #34345a; border-color: var(--accent); }
+      .menu-btn:active { transform: scale(0.98); background: #40406a; }
+      .menu-btn-primary {
+        background: var(--accent);
+        color: #14142a;
+        border-color: var(--accent);
+        font-weight: 600;
+      }
+      .menu-btn-primary:hover { background: #a0e5c2; }
+      .menu-btn-primary:active { background: #8dd4b0; }
+      .menu-btn-danger {
+        background: #4a2a2a;
+        border-color: var(--wrong);
+      }
+      .menu-btn-danger:hover { background: #5a3030; }
+      .menu-row {
+        display: flex;
+        gap: 8px;
+      }
+      .menu-row .menu-btn { margin-bottom: 0; }
+      .menu-section {
+        margin-bottom: 20px;
+        padding: 16px;
+        background: rgba(0, 0, 0, 0.25);
+        border-radius: 10px;
+      }
+      .menu-slider-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        margin-bottom: 10px;
+      }
+      .menu-slider-head label {
+        font-size: 14px;
+        color: var(--text);
+      }
+      .menu-slider-value {
+        font-size: 18px;
+        font-weight: 600;
+        color: var(--accent);
+        font-variant-numeric: tabular-nums;
+        min-width: 2.5em;
+        text-align: right;
+      }
+      .menu-slider {
+        width: 100%;
+        height: 32px;
+        -webkit-appearance: none;
+        appearance: none;
+        background: transparent;
+        cursor: pointer;
+        touch-action: manipulation;
+      }
+      .menu-slider::-webkit-slider-runnable-track {
+        height: 6px;
+        background: linear-gradient(to right, var(--accent) 0%, var(--border) 100%);
+        border-radius: 3px;
+      }
+      .menu-slider::-moz-range-track {
+        height: 6px;
+        background: linear-gradient(to right, var(--accent) 0%, var(--border) 100%);
+        border-radius: 3px;
+      }
+      .menu-slider::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 22px; height: 22px;
+        border-radius: 50%;
+        background: var(--accent);
+        border: 2px solid #14142a;
+        margin-top: -8px;
+        cursor: pointer;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+      }
+      .menu-slider::-moz-range-thumb {
+        width: 22px; height: 22px;
+        border-radius: 50%;
+        background: var(--accent);
+        border: 2px solid #14142a;
+        cursor: pointer;
+      }
+      .menu-slider-scale {
+        display: flex;
+        justify-content: space-between;
+        font-size: 11px;
+        color: var(--muted);
+        margin-top: 4px;
+      }
+      @media (max-width: 480px) {
+        .menu-box { padding: 20px 16px; }
+        .menu-title { font-size: 19px; margin-bottom: 16px; }
+        .menu-btn { padding: 12px 14px; font-size: 15px; }
+      }
     </style>
     <script>
       // Раннее touch-детект: добавляем класс до отрисовки
@@ -469,6 +669,7 @@
         <p>Загадок решено: <span id="solved-count">0/0</span></p>
         <p id="status">Загрузка...</p>
         <p id="hint" class="hint"></p>
+        <button id="menu-btn" type="button" aria-label="Меню">☰ Меню (Esc)</button>
         <button id="mute-btn" type="button">🔊 Звук</button>
         <button id="fullscreen-btn" type="button">⛶ На весь экран</button>
         <canvas id="minimap" width="180" height="180"></canvas>
@@ -544,7 +745,11 @@
       // Свайп по canvas — поворот камеры по горизонтали (yaw) и вертикали (pitch).
       // Отслеживаем первый палец, что лёг на canvas; остальные пальцы (на кнопках) игнорим.
       const sceneEl = document.getElementById('scene');
-      const SWIPE_SENS = 0.004; // рад/px; свайп ~250px ≈ 57°
+      const SWIPE_SENS_BASE = 0.004; // рад/px при чувствительности 1.0
+      const getSens = () => {
+        const mult = window.mazeSettings?.getSensitivity?.() ?? 1.0;
+        return SWIPE_SENS_BASE * mult;
+      };
       let swipeTouchId = null;
       let swipeLastX = 0;
       let swipeLastY = 0;
@@ -566,8 +771,9 @@
           swipeLastY = t.clientY;
           // Палец ведёт камеру: свайп вправо → камера поворачивается вправо;
           // свайп вверх → камера смотрит вверх (pitch растёт).
-          window.mazeInput?.yaw(-dx * SWIPE_SENS);
-          window.mazeInput?.pitch(-dy * SWIPE_SENS);
+          const s = getSens();
+          window.mazeInput?.yaw(-dx * s);
+          window.mazeInput?.pitch(-dy * s);
           break;
         }
       }, { passive: true });

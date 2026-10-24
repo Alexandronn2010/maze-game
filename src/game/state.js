@@ -1,6 +1,7 @@
 export const STATE = {
   EXPLORING: 'exploring',
   DIALOGUE: 'dialogue',
+  PAUSED: 'paused',
   WIN: 'win',
 };
 
