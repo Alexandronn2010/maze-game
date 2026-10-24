@@ -157,6 +157,18 @@ async function main() {
     interact() {
       window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
     },
+    yaw(delta) {
+      if (state.current !== STATE.EXPLORING) return;
+      enterTouchMode();
+      camState.yaw += delta;
+    },
+    pitch(delta) {
+      if (state.current !== STATE.EXPLORING) return;
+      enterTouchMode();
+      camPitch += delta;
+      if (camPitch > PITCH_LIMIT) camPitch = PITCH_LIMIT;
+      if (camPitch < -PITCH_LIMIT) camPitch = -PITCH_LIMIT;
+    },
   };
 
   sceneCanvas.addEventListener('click', () => {

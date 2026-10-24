@@ -124,9 +124,9 @@
       #touch-controls .side { pointer-events: auto; }
       .dpad {
         display: grid;
-        grid-template-columns: 56px 56px 56px;
-        grid-template-rows: 56px 56px 56px;
-        gap: 4px;
+        grid-template-columns: 56px;
+        grid-template-rows: 56px 56px;
+        gap: 8px;
       }
       .dpad button {
         background: rgba(20,20,35,0.6);
@@ -140,10 +140,8 @@
         -webkit-user-select: none;
       }
       .dpad button:active { background: rgba(126,214,165,0.35); }
-      .dpad .up    { grid-column: 2; grid-row: 1; }
-      .dpad .left  { grid-column: 1; grid-row: 2; }
-      .dpad .right { grid-column: 3; grid-row: 2; }
-      .dpad .down  { grid-column: 2; grid-row: 3; }
+      .dpad .up    { grid-column: 1; grid-row: 1; }
+      .dpad .down  { grid-column: 1; grid-row: 2; }
       #btn-interact {
         background: rgba(126,214,165,0.7);
         color: #14142a;
@@ -195,6 +193,7 @@
         max-height: none;
         aspect-ratio: auto;
         border: none;
+        touch-action: none;
       }
       html.touch #sidebar {
         position: fixed;
@@ -498,8 +497,6 @@
       <div class="side">
         <div class="dpad">
           <button class="up" data-key="ArrowUp" aria-label="Вперёд">↑</button>
-          <button class="left" data-key="ArrowLeft" aria-label="Влево">←</button>
-          <button class="right" data-key="ArrowRight" aria-label="Вправо">→</button>
           <button class="down" data-key="ArrowDown" aria-label="Назад">↓</button>
         </div>
       </div>
@@ -543,6 +540,45 @@
       };
       interactBtn?.addEventListener('touchstart', fireInteract, { passive: false });
       interactBtn?.addEventListener('click', fireInteract);
+
+      // Свайп по canvas — поворот камеры по горизонтали (yaw) и вертикали (pitch).
+      // Отслеживаем первый палец, что лёг на canvas; остальные пальцы (на кнопках) игнорим.
+      const sceneEl = document.getElementById('scene');
+      const SWIPE_SENS = 0.004; // рад/px; свайп ~250px ≈ 57°
+      let swipeTouchId = null;
+      let swipeLastX = 0;
+      let swipeLastY = 0;
+      sceneEl?.addEventListener('touchstart', (e) => {
+        if (swipeTouchId !== null) return;
+        const t = e.changedTouches[0];
+        if (!t) return;
+        swipeTouchId = t.identifier;
+        swipeLastX = t.clientX;
+        swipeLastY = t.clientY;
+      }, { passive: true });
+      sceneEl?.addEventListener('touchmove', (e) => {
+        if (swipeTouchId === null) return;
+        for (const t of e.changedTouches) {
+          if (t.identifier !== swipeTouchId) continue;
+          const dx = t.clientX - swipeLastX;
+          const dy = t.clientY - swipeLastY;
+          swipeLastX = t.clientX;
+          swipeLastY = t.clientY;
+          // Палец ведёт камеру: свайп вправо → камера поворачивается вправо;
+          // свайп вверх → камера смотрит вверх (pitch растёт).
+          window.mazeInput?.yaw(-dx * SWIPE_SENS);
+          window.mazeInput?.pitch(-dy * SWIPE_SENS);
+          break;
+        }
+      }, { passive: true });
+      const endSwipe = (e) => {
+        if (swipeTouchId === null) return;
+        for (const t of e.changedTouches) {
+          if (t.identifier === swipeTouchId) { swipeTouchId = null; break; }
+        }
+      };
+      sceneEl?.addEventListener('touchend', endSwipe, { passive: true });
+      sceneEl?.addEventListener('touchcancel', endSwipe, { passive: true });
     </script>
 
     <script>
